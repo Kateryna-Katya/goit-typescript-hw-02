@@ -6,7 +6,7 @@ import ImageGallery from "./componetns/ImageGallery/ImageGallery";
 import Loader from "./componetns/Loader/Loader";
 import LoadMoreBtn from "./componetns/LoadMoreBtn/LoadMoreBtn";
 import ErrorMessage from "./componetns/ErrorMessage/ErrorMessage";
-import { Image } from "./index";
+import { Image, FetchImagesResponse } from "./index";
 import ImageModal from "./componetns/ImageModal/ImageModal";
 
 axios.defaults.baseURL = `https://api.unsplash.com`;
@@ -26,20 +26,21 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!query) return;
 
-    const fetchImages = async () => {
+    const fetchImages = async (): Promise<void> => {
       setLoading(true);
       setError(null);
+
       try {
-        const response = await axios.get("/search/photos", {
-          params: { query, page, per_page: 12 },
-          headers: { Authorization: `Client-ID ${API_KEY}` },
-        });
+        const response = await axios.get<FetchImagesResponse>(
+          "/search/photos",
+          {
+            params: { query, page, per_page: 12 },
+            headers: { Authorization: `Client-ID ${API_KEY}` },
+          }
+        );
 
-        const newImages = response.data.results as Image[];
-        const total = response.data.total as number;
-
-        setImages((prevImages) => [...prevImages, ...newImages]);
-        setTotalResults(total);
+        setImages((prevImages) => [...prevImages, ...response.data.results]);
+        setTotalResults(response.data.total);
       } catch (error) {
         setError("Failed to fetch images. Please try again.");
         console.error(error);
